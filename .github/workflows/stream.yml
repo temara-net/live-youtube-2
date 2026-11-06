@@ -7,10 +7,6 @@ on:
         description: "Durasi streaming dalam menit"
         required: true
         default: "55"
-      album:
-        description: "Nomor album yang ditayangkan (1, 2, atau 3)"
-        required: true
-        default: "1"
 
 jobs:
   live:
@@ -26,14 +22,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download v1 --repo "${{ github.repository }}" --pattern "video-album-0${{ inputs.album }}.mp4" --dir .
-          ls -la "video-album-0${{ inputs.album }}.mp4"
+          gh release download v1 --repo "${{ github.repository }}" --pattern "video-album-01.mp4" --dir .
+          ls -la video-album-01.mp4
       - name: Stream to YouTube Live
         env:
           YT_STREAM_KEY: ${{ secrets.YT_STREAM_KEY }}
         run: |
           ffmpeg -version | head -1
-          timeout "${{ inputs.minutes }}m" ffmpeg -hide_banner -loglevel warning -re -stream_loop -1 -i "video-album-0${{ inputs.album }}.mp4" \
+          timeout "${{ inputs.minutes }}m" ffmpeg -hide_banner -loglevel warning -re -stream_loop -1 -i video-album-01.mp4 \
             -c:v libx264 -preset veryfast -b:v 2500k -maxrate 2500k -bufsize 5000k \
             -pix_fmt yuv420p -g 60 -r 30 \
             -c:a aac -b:a 128k -ar 44100 \
