@@ -15,9 +15,8 @@ jobs:
     steps:
       - name: Install ffmpeg
         run: |
-          curl -sL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -o ffmpeg.tar.xz
-          tar -xf ffmpeg.tar.xz
-          sudo cp ffmpeg-*-amd64-static/ffmpeg /usr/local/bin/
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
           ffmpeg -version | head -1
       - name: Download loop video
         env:
@@ -34,5 +33,5 @@ jobs:
             -c:v libx264 -preset veryfast -b:v 2500k -maxrate 2500k -bufsize 5000k \
             -pix_fmt yuv420p -g 60 -r 30 \
             -c:a aac -b:a 128k -ar 44100 \
-            -f flv "rtmps://a.rtmps.youtube.com/live2/${YT_STREAM_KEY}" || true
+            -f flv "rtmps://a.rtmps.youtube.com/live2/${YT_STREAM_KEY}" || test $? -eq 124
           echo "stream selesai (durasi tercapai atau sambungan berakhir)"
