@@ -1,0 +1,37 @@
+name: stream
+
+on:
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: "Durasi streaming dalam menit"
+        required: true
+        default: "55"
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          ffmpeg -version | head -1
+      - name: Download loop video
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v1 --repo "${{ github.repository }}" --pattern "video-album-01.mp4" --dir .
+          ls -la video-album-01.mp4
+      - name: Stream to YouTube Live
+        env:
+          YT_STREAM_KEY: ${{ secrets.YT_STREAM_KEY }}
+        run: |
+          ffmpeg -version | head -1
+          timeout "${{ inputs.minutes }}m" ffmpeg -hide_banner -loglevel warning -re -stream_loop -1 -i video-album-01.mp4 \
+            -c:v libx264 -preset veryfast -b:v 2500k -maxrate 2500k -bufsize 5000k \
+            -pix_fmt yuv420p -g 60 -r 30 \
+            -c:a aac -b:a 128k -ar 44100 \
+            -f flv "rtmps://a.rtmps.youtube.com/live2/${YT_STREAM_KEY}" || true
+          echo "stream selesai (durasi tercapai atau sambungan berakhir)"
